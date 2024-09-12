@@ -1,4 +1,4 @@
-BUILD_DIR = ./build
+BUILD_DIR = ./generated-src
 
 PRJ = ChiselProject
 
@@ -9,3 +9,7 @@ verilog:
 
 test:
 	mill -i $(PRJ).Test
+
+clean:
+	rm -rf ./out/
+	rm -rf $(BUILD_DIR)

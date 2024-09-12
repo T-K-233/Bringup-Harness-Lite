@@ -9,7 +9,7 @@ object Elaborate extends App {
   )
 
   ChiselStage.emitSystemVerilogFile(
-    gen=new Top,
+    gen=new Arty100Top,
     args=chiselOpts,
     firtoolOpts=firtoolOpts
   )
