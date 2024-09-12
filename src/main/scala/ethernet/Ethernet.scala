@@ -55,10 +55,6 @@ class Ethernet extends Module {
   io.led6 := eth_wrapper.io.led6
   io.led7 := eth_wrapper.io.led7
 
-  io.phy_tx_clk := eth_wrapper.io.phy_tx_clk
-  io.phy_tx_en := eth_wrapper.io.phy_tx_en
-  io.phy_txd := eth_wrapper.io.phy_txd
-
   eth_wrapper.io.phy_col := io.phy_col  
   eth_wrapper.io.phy_crs := io.phy_crs
   io.phy_reset_n := eth_wrapper.io.phy_reset_n

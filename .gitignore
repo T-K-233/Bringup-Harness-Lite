@@ -1,0 +1,15 @@
+.bloop/
+.metals/
+.vscode/
+
+# generated-src/
+
+harness-arty100t/*.cache
+harness-arty100t/*.hw
+harness-arty100t/*.ip_user_files
+harness-arty100t/*.runs
+harness-arty100t/*.sim
+harness-arty100t/*.srcs/utils_*
+
+out/
+
