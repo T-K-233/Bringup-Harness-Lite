@@ -298,7 +298,7 @@ eth_mac_inst (
     .rx_axis_tlast(rx_axis_tlast),
     .rx_axis_tuser(rx_axis_tuser),
 
-    .mii_rx_clk(phy_rx_clock),
+    .mii_rx_clk(phy_rx_clk),
     .mii_rxd(phy_rxd),
     .mii_rx_dv(phy_rx_dv),
     .mii_rx_er(phy_rx_er),
