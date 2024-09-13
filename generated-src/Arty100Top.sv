@@ -27,8 +27,8 @@ module Arty100Top(
                eth_rx_dv,
   input  [3:0] eth_rxd,
   input        eth_rxerr,
-  output       eth_tx_clk,
-               eth_tx_en,
+               eth_tx_clk,
+  output       eth_tx_en,
   output [3:0] eth_txd
 );
 
@@ -131,8 +131,6 @@ module Arty100Top(
     .io_led5        (_eth_io_led5),
     .io_led6        (_eth_io_led6),
     .io_led7        (_eth_io_led7),
-    .io_phy_col     (eth_col),
-    .io_phy_crs     (eth_crs),
     .io_phy_reset_n (eth_rstn),
     .io_phy_rx_clk  (eth_rx_clk),
     .io_phy_rx_dv   (eth_rx_dv),

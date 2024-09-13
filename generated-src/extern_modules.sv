@@ -15,3 +15,5 @@
 
 // external module axis_fifo
 
+// external module eth_mac_mii_fifo
+

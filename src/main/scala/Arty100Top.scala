@@ -30,11 +30,11 @@ class Arty100Top extends RawModule {
   val eth_crs = IO(Input(Bool()))
   val eth_ref_clk = IO(Output(Clock()))
   val eth_rstn = IO(Output(Bool()))
-  val eth_rx_clk = IO(Input(Bool()))
+  val eth_rx_clk = IO(Input(Clock()))
   val eth_rx_dv = IO(Input(Bool()))
   val eth_rxd = IO(Input(UInt(4.W)))
   val eth_rxerr = IO(Input(Bool()))
-  val eth_tx_clk = IO(Output(Bool()))
+  val eth_tx_clk = IO(Input(Clock()))
   val eth_tx_en = IO(Output(Bool()))
   val eth_txd = IO(Output(UInt(4.W)))
 
@@ -135,7 +135,7 @@ class Arty100Top extends RawModule {
     eth.io.phy_rx_dv := eth_rx_dv
     eth.io.phy_rxd := eth_rxd
     eth.io.phy_rx_er := eth_rxerr
-    eth_tx_clk := eth.io.phy_tx_clk
+    eth.io.phy_tx_clk := eth_tx_clk
     eth_tx_en := eth.io.phy_tx_en
     eth_txd := eth.io.phy_txd
   }

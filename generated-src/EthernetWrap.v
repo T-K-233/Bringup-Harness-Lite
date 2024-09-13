@@ -28,15 +28,6 @@ module EthernetWrap (
     /*
      * Ethernet: 100BASE-T MII
      */
-    input  wire       phy_rx_clk,
-    input  wire [3:0] phy_rxd,
-    input  wire       phy_rx_dv,
-    input  wire       phy_rx_er,
-    output wire       phy_tx_clk,
-    output wire [3:0] phy_txd,
-    output wire       phy_tx_en,
-    input  wire       phy_col,
-    input  wire       phy_crs,
     output wire       phy_reset_n,
 
 
@@ -52,11 +43,6 @@ input tx_eth_payload_axis_tready,
 output tx_eth_payload_axis_tlast,
 output tx_eth_payload_axis_tuser,
 
-input [7:0] tx_axis_tdata,
-input tx_axis_tvalid,
-output tx_axis_tready,
-input tx_axis_tlast,
-input tx_axis_tuser,
 
 output rx_eth_hdr_valid,
 input rx_eth_hdr_ready,
@@ -274,55 +260,50 @@ assign {led0_g, led1_g, led2_g, led3_g, led4, led5, led6, led7} = led_reg;
 assign phy_reset_n = !reset;
 
 
-eth_mac_mii_fifo #(
-    .TARGET("XILINX"),
-    .CLOCK_INPUT_STYLE("BUFR"),
-    .ENABLE_PADDING(1),
-    .MIN_FRAME_LENGTH(64),
-    .TX_FIFO_DEPTH(4096),
-    .TX_FRAME_FIFO(1),
-    .RX_FIFO_DEPTH(4096),
-    .RX_FRAME_FIFO(1)
-)
-eth_mac_inst (
-    .rst(reset),
-    .logic_clk(clock),
-    .logic_rst(reset),
-
-    .tx_axis_tdata(tx_axis_tdata),
-    .tx_axis_tvalid(tx_axis_tvalid),
-    .tx_axis_tready(tx_axis_tready),
-    .tx_axis_tlast(tx_axis_tlast),
-    .tx_axis_tuser(tx_axis_tuser),
-
-    .rx_axis_tdata(rx_axis_tdata),
-    .rx_axis_tvalid(rx_axis_tvalid),
-    .rx_axis_tready(rx_axis_tready),
-    .rx_axis_tlast(rx_axis_tlast),
-    .rx_axis_tuser(rx_axis_tuser),
-
-    .mii_rx_clk(phy_rx_clk),
-    .mii_rxd(phy_rxd),
-    .mii_rx_dv(phy_rx_dv),
-    .mii_rx_er(phy_rx_er),
-    .mii_tx_clk(phy_tx_clk),
-    .mii_txd(phy_txd),
-    .mii_tx_en(phy_tx_en),
-    .mii_tx_er(),
-
-    .tx_fifo_overflow(),
-    .tx_fifo_bad_frame(),
-    .tx_fifo_good_frame(),
-    .rx_error_bad_frame(),
-    .rx_error_bad_fcs(),
-    .rx_fifo_overflow(),
-    .rx_fifo_bad_frame(),
-    .rx_fifo_good_frame(),
-
-    .cfg_ifg(8'd12),
-    .cfg_tx_enable(1'b1),
-    .cfg_rx_enable(1'b1)
-);
+// eth_mac_mii_fifo #(
+//     .TARGET("XILINX"),
+//     .CLOCK_INPUT_STYLE("BUFR"),
+//     .ENABLE_PADDING(1),
+//     .MIN_FRAME_LENGTH(64),
+//     .TX_FIFO_DEPTH(4096),
+//     .TX_FRAME_FIFO(1),
+//     .RX_FIFO_DEPTH(4096),
+//     .RX_FRAME_FIFO(1)
+// )
+// eth_mac_inst (
+//     .rst(reset),
+//     .logic_clk(clock),
+//     .logic_rst(reset),
+// 
+// 
+//     .rx_axis_tdata(rx_axis_tdata),
+//     .rx_axis_tvalid(rx_axis_tvalid),
+//     .rx_axis_tready(rx_axis_tready),
+//     .rx_axis_tlast(rx_axis_tlast),
+//     .rx_axis_tuser(rx_axis_tuser),
+// 
+//     .mii_rx_clk(phy_rx_clk),
+//     .mii_rxd(phy_rxd),
+//     .mii_rx_dv(phy_rx_dv),
+//     .mii_rx_er(phy_rx_er),
+//     .mii_tx_clk(phy_tx_clk),
+//     .mii_txd(phy_txd),
+//     .mii_tx_en(phy_tx_en),
+//     .mii_tx_er(),
+// 
+//     .tx_fifo_overflow(),
+//     .tx_fifo_bad_frame(),
+//     .tx_fifo_good_frame(),
+//     .rx_error_bad_frame(),
+//     .rx_error_bad_fcs(),
+//     .rx_fifo_overflow(),
+//     .rx_fifo_bad_frame(),
+//     .rx_fifo_good_frame(),
+// 
+//     .cfg_ifg(8'd12),
+//     .cfg_tx_enable(1'b1),
+//     .cfg_rx_enable(1'b1)
+// );
 
 
 udp_complete
@@ -457,45 +438,6 @@ udp_complete_inst (
     .clear_arp_cache(0)
 );
 
- // axis_fifo #(
- //     .DEPTH(8192),
- //     .DATA_WIDTH(8),
- //     .KEEP_ENABLE(0),
- //     .ID_ENABLE(0),
- //     .DEST_ENABLE(0),
- //     .USER_ENABLE(1),
- //     .USER_WIDTH(1),
- //     .FRAME_FIFO(0)
- // )
- // udp_payload_fifo (
- //     .clk(clock),
- //     .rst(reset),
- // 
- //     // AXI input
- //     .s_axis_tdata(rx_fifo_udp_payload_axis_tdata),
- //     .s_axis_tkeep(0),
- //     .s_axis_tvalid(rx_fifo_udp_payload_axis_tvalid),
- //     .s_axis_tready(rx_fifo_udp_payload_axis_tready),
- //     .s_axis_tlast(rx_fifo_udp_payload_axis_tlast),
- //     .s_axis_tid(0),
- //     .s_axis_tdest(0),
- //     .s_axis_tuser(rx_fifo_udp_payload_axis_tuser),
- // 
- //     // AXI output
- //     .m_axis_tdata(tx_fifo_udp_payload_axis_tdata),
- //     .m_axis_tkeep(),
- //     .m_axis_tvalid(tx_fifo_udp_payload_axis_tvalid),
- //     .m_axis_tready(tx_fifo_udp_payload_axis_tready),
- //     .m_axis_tlast(tx_fifo_udp_payload_axis_tlast),
- //     .m_axis_tid(),
- //     .m_axis_tdest(),
- //     .m_axis_tuser(tx_fifo_udp_payload_axis_tuser),
- // 
- //     // Status
- //     .status_overflow(),
- //     .status_bad_frame(),
- //     .status_good_frame()
- // );
 
 endmodule
 

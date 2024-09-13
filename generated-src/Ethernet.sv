@@ -18,18 +18,22 @@ module Ethernet(
                io_led5,
                io_led6,
                io_led7,
-  input        io_phy_col,
-               io_phy_crs,
-  output       io_phy_reset_n,
+               io_phy_reset_n,
   input        io_phy_rx_clk,
                io_phy_rx_dv,
   input  [3:0] io_phy_rxd,
   input        io_phy_rx_er,
-  output       io_phy_tx_clk,
-               io_phy_tx_en,
+               io_phy_tx_clk,
+  output       io_phy_tx_en,
   output [3:0] io_phy_txd
 );
 
+  wire        _eth_mac_mii_fifo_tx_axis_tready;
+  wire [7:0]  _eth_mac_mii_fifo_rx_axis_tdata;
+  wire        _eth_mac_mii_fifo_rx_axis_tvalid;
+  wire        _eth_mac_mii_fifo_rx_axis_tlast;
+  wire        _eth_mac_mii_fifo_rx_axis_tuser;
+  wire [7:0]  _eth_mac_mii_fifo_mii_txd;
   wire        _udp_payload_fifo_s_axis_tready;
   wire [7:0]  _udp_payload_fifo_m_axis_tdata;
   wire        _udp_payload_fifo_m_axis_tvalid;
@@ -58,13 +62,8 @@ module Ethernet(
   wire        _eth_wrapper_tx_eth_payload_axis_tvalid;
   wire        _eth_wrapper_tx_eth_payload_axis_tlast;
   wire        _eth_wrapper_tx_eth_payload_axis_tuser;
-  wire        _eth_wrapper_tx_axis_tready;
   wire        _eth_wrapper_rx_eth_hdr_ready;
   wire        _eth_wrapper_rx_eth_payload_axis_tready;
-  wire [7:0]  _eth_wrapper_rx_axis_tdata;
-  wire        _eth_wrapper_rx_axis_tvalid;
-  wire        _eth_wrapper_rx_axis_tlast;
-  wire        _eth_wrapper_rx_axis_tuser;
   wire [7:0]  _eth_wrapper_rx_fifo_udp_payload_axis_tdata;
   wire        _eth_wrapper_rx_fifo_udp_payload_axis_tvalid;
   wire        _eth_wrapper_rx_fifo_udp_payload_axis_tlast;
@@ -89,16 +88,7 @@ module Ethernet(
     .led5                            (io_led5),
     .led6                            (io_led6),
     .led7                            (io_led7),
-    .phy_col                         (io_phy_col),
-    .phy_crs                         (io_phy_crs),
     .phy_reset_n                     (io_phy_reset_n),
-    .phy_rx_clk                      (io_phy_rx_clk),
-    .phy_rx_dv                       (io_phy_rx_dv),
-    .phy_rxd                         (io_phy_rxd),
-    .phy_rx_er                       (io_phy_rx_er),
-    .phy_tx_clk                      (io_phy_tx_clk),
-    .phy_tx_en                       (io_phy_tx_en),
-    .phy_txd                         (io_phy_txd),
     .tx_eth_hdr_valid                (_eth_wrapper_tx_eth_hdr_valid),
     .tx_eth_hdr_ready                (_eth_axis_tx_s_eth_hdr_ready),
     .tx_eth_dest_mac                 (_eth_wrapper_tx_eth_dest_mac),
@@ -109,11 +99,6 @@ module Ethernet(
     .tx_eth_payload_axis_tready      (_eth_axis_tx_s_eth_payload_axis_tready),
     .tx_eth_payload_axis_tlast       (_eth_wrapper_tx_eth_payload_axis_tlast),
     .tx_eth_payload_axis_tuser       (_eth_wrapper_tx_eth_payload_axis_tuser),
-    .tx_axis_tdata                   (_eth_axis_tx_m_axis_tdata),
-    .tx_axis_tvalid                  (_eth_axis_tx_m_axis_tvalid),
-    .tx_axis_tready                  (_eth_wrapper_tx_axis_tready),
-    .tx_axis_tlast                   (_eth_axis_tx_m_axis_tlast),
-    .tx_axis_tuser                   (_eth_axis_tx_m_axis_tuser),
     .rx_eth_hdr_valid                (_eth_axis_rx_m_eth_hdr_valid),
     .rx_eth_hdr_ready                (_eth_wrapper_rx_eth_hdr_ready),
     .rx_eth_dest_mac                 (_eth_axis_rx_m_eth_dest_mac),
@@ -124,11 +109,6 @@ module Ethernet(
     .rx_eth_payload_axis_tready      (_eth_wrapper_rx_eth_payload_axis_tready),
     .rx_eth_payload_axis_tlast       (_eth_axis_rx_m_eth_payload_axis_tlast),
     .rx_eth_payload_axis_tuser       (_eth_axis_rx_m_eth_payload_axis_tuser),
-    .rx_axis_tdata                   (_eth_wrapper_rx_axis_tdata),
-    .rx_axis_tvalid                  (_eth_wrapper_rx_axis_tvalid),
-    .rx_axis_tready                  (_eth_axis_rx_s_axis_tready),
-    .rx_axis_tlast                   (_eth_wrapper_rx_axis_tlast),
-    .rx_axis_tuser                   (_eth_wrapper_rx_axis_tuser),
     .rx_fifo_udp_payload_axis_tdata  (_eth_wrapper_rx_fifo_udp_payload_axis_tdata),
     .rx_fifo_udp_payload_axis_tvalid (_eth_wrapper_rx_fifo_udp_payload_axis_tvalid),
     .rx_fifo_udp_payload_axis_tready (_udp_payload_fifo_s_axis_tready),
@@ -157,7 +137,7 @@ module Ethernet(
     .s_eth_payload_axis_tuser  (_eth_wrapper_tx_eth_payload_axis_tuser),
     .m_axis_tdata              (_eth_axis_tx_m_axis_tdata),
     .m_axis_tvalid             (_eth_axis_tx_m_axis_tvalid),
-    .m_axis_tready             (_eth_wrapper_tx_axis_tready),
+    .m_axis_tready             (_eth_mac_mii_fifo_tx_axis_tready),
     .m_axis_tlast              (_eth_axis_tx_m_axis_tlast),
     .m_axis_tuser              (_eth_axis_tx_m_axis_tuser),
     .busy                      (/* unused */)
@@ -167,11 +147,11 @@ module Ethernet(
   ) eth_axis_rx (
     .clk                            (clock),
     .rst                            (reset),
-    .s_axis_tdata                   (_eth_wrapper_rx_axis_tdata),
-    .s_axis_tvalid                  (_eth_wrapper_rx_axis_tvalid),
+    .s_axis_tdata                   (_eth_mac_mii_fifo_rx_axis_tdata),
+    .s_axis_tvalid                  (_eth_mac_mii_fifo_rx_axis_tvalid),
     .s_axis_tready                  (_eth_axis_rx_s_axis_tready),
-    .s_axis_tlast                   (_eth_wrapper_rx_axis_tlast),
-    .s_axis_tuser                   (_eth_wrapper_rx_axis_tuser),
+    .s_axis_tlast                   (_eth_mac_mii_fifo_rx_axis_tlast),
+    .s_axis_tuser                   (_eth_mac_mii_fifo_rx_axis_tuser),
     .m_eth_hdr_valid                (_eth_axis_rx_m_eth_hdr_valid),
     .m_eth_hdr_ready                (_eth_wrapper_rx_eth_hdr_ready),
     .m_eth_dest_mac                 (_eth_axis_rx_m_eth_dest_mac),
@@ -214,5 +194,51 @@ module Ethernet(
     .m_axis_tdest  (/* unused */),
     .m_axis_tuser  (_udp_payload_fifo_m_axis_tuser)
   );
+  eth_mac_mii_fifo #(
+    .AXIS_DATA_WIDTH(8),
+    .CLOCK_INPUT_STYLE("BUFR"),
+    .ENABLE_PADDING(1),
+    .MIN_FRAME_LENGTH(64),
+    .RX_FIFO_DEPTH(4096),
+    .RX_FRAME_FIFO(1),
+    .TARGET("XILINX"),
+    .TX_FIFO_DEPTH(4096),
+    .TX_FRAME_FIFO(1)
+  ) eth_mac_mii_fifo (
+    .rst                (reset),
+    .logic_clk          (clock),
+    .logic_rst          (reset),
+    .tx_axis_tdata      (_eth_axis_tx_m_axis_tdata),
+    .tx_axis_tvalid     (_eth_axis_tx_m_axis_tvalid),
+    .tx_axis_tready     (_eth_mac_mii_fifo_tx_axis_tready),
+    .tx_axis_tlast      (_eth_axis_tx_m_axis_tlast),
+    .tx_axis_tuser      (_eth_axis_tx_m_axis_tuser),
+    .rx_axis_tdata      (_eth_mac_mii_fifo_rx_axis_tdata),
+    .rx_axis_tvalid     (_eth_mac_mii_fifo_rx_axis_tvalid),
+    .rx_axis_tready     (_eth_axis_rx_s_axis_tready),
+    .rx_axis_tlast      (_eth_mac_mii_fifo_rx_axis_tlast),
+    .rx_axis_tuser      (_eth_mac_mii_fifo_rx_axis_tuser),
+    .mii_rx_clk         (io_phy_rx_clk),
+    .mii_rxd            ({4'h0, io_phy_rxd}),
+    .mii_rx_dv          (io_phy_rx_dv),
+    .mii_rx_er          (io_phy_rx_er),
+    .mii_tx_clk         (io_phy_tx_clk),
+    .mii_txd            (_eth_mac_mii_fifo_mii_txd),
+    .mii_tx_en          (io_phy_tx_en),
+    .mii_tx_er          (/* unused */),
+    .tx_error_underflow (/* unused */),
+    .tx_fifo_overflow   (/* unused */),
+    .tx_fifo_bad_frame  (/* unused */),
+    .tx_fifo_good_frame (/* unused */),
+    .rx_error_bad_frame (/* unused */),
+    .rx_error_bad_fcs   (/* unused */),
+    .rx_fifo_overflow   (/* unused */),
+    .rx_fifo_bad_frame  (/* unused */),
+    .rx_fifo_good_frame (/* unused */),
+    .cfg_ifg            (8'hC),
+    .cfg_tx_enable      (1'h1),
+    .cfg_rx_enable      (1'h1)
+  );
+  assign io_phy_txd = _eth_mac_mii_fifo_mii_txd[3:0];
 endmodule
 
