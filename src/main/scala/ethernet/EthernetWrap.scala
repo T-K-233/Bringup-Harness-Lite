@@ -52,6 +52,22 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
     val tx_axis_tready = Output(Bool())
     val tx_axis_tlast = Input(Bool())
     val tx_axis_tuser = Input(Bool())
+
+    val rx_eth_hdr_valid = Input(Bool())
+    val rx_eth_hdr_ready = Output(Bool())
+    val rx_eth_dest_mac = Input(UInt(48.W))
+    val rx_eth_src_mac = Input(UInt(48.W))
+    val rx_eth_type = Input(UInt(16.W))
+    val rx_eth_payload_axis_tdata = Input(UInt(8.W))
+    val rx_eth_payload_axis_tvalid = Input(Bool())
+    val rx_eth_payload_axis_tready = Output(Bool())
+    val rx_eth_payload_axis_tlast = Input(Bool())
+    val rx_eth_payload_axis_tuser = Input(Bool())
+    val rx_axis_tdata = Output(UInt(8.W))
+    val rx_axis_tvalid = Output(Bool())
+    val rx_axis_tready = Input(Bool())
+    val rx_axis_tlast = Output(Bool())
+    val rx_axis_tuser = Output(Bool())
   })
 
   setInline("EthernetWrap.v",
@@ -113,28 +129,25 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
       |input tx_axis_tvalid,
       |output tx_axis_tready,
       |input tx_axis_tlast,
-      |input tx_axis_tuser
+      |input tx_axis_tuser,
+      |
+      |output rx_eth_hdr_valid,
+      |input rx_eth_hdr_ready,
+      |input [47:0] rx_eth_dest_mac,
+      |input [47:0] rx_eth_src_mac,
+      |input [15:0] rx_eth_type,
+      |input [7:0] rx_eth_payload_axis_tdata,
+      |input rx_eth_payload_axis_tvalid,
+      |output rx_eth_payload_axis_tready,
+      |input rx_eth_payload_axis_tlast,
+      |input rx_eth_payload_axis_tuser,
+      |
+      |output [7:0] rx_axis_tdata,
+      |output rx_axis_tvalid,
+      |input rx_axis_tready,
+      |output rx_axis_tlast,
+      |output rx_axis_tuser
       |);
-|
-|// AXI between MAC and Ethernet modules
-|wire [7:0] rx_axis_tdata;
-|wire rx_axis_tvalid;
-|wire rx_axis_tready;
-|wire rx_axis_tlast;
-|wire rx_axis_tuser;
-|
-|
-|// Ethernet frame between Ethernet modules and UDP stack
-|wire rx_eth_hdr_ready;
-|wire rx_eth_hdr_valid;
-|wire [47:0] rx_eth_dest_mac;
-|wire [47:0] rx_eth_src_mac;
-|wire [15:0] rx_eth_type;
-|wire [7:0] rx_eth_payload_axis_tdata;
-|wire rx_eth_payload_axis_tvalid;
-|wire rx_eth_payload_axis_tready;
-|wire rx_eth_payload_axis_tlast;
-|wire rx_eth_payload_axis_tuser;
 |
 |
 |// IP frame connections
@@ -381,56 +394,6 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
 |    .cfg_rx_enable(1'b1)
 |);
 |
-|eth_axis_rx
-|eth_axis_rx_inst (
-|    .clk(clock),
-|    .rst(reset),
-|    // AXI input
-|    .s_axis_tdata(rx_axis_tdata),
-|    .s_axis_tvalid(rx_axis_tvalid),
-|    .s_axis_tready(rx_axis_tready),
-|    .s_axis_tlast(rx_axis_tlast),
-|    .s_axis_tuser(rx_axis_tuser),
-|    // Ethernet frame output
-|    .m_eth_hdr_valid(rx_eth_hdr_valid),
-|    .m_eth_hdr_ready(rx_eth_hdr_ready),
-|    .m_eth_dest_mac(rx_eth_dest_mac),
-|    .m_eth_src_mac(rx_eth_src_mac),
-|    .m_eth_type(rx_eth_type),
-|    .m_eth_payload_axis_tdata(rx_eth_payload_axis_tdata),
-|    .m_eth_payload_axis_tvalid(rx_eth_payload_axis_tvalid),
-|    .m_eth_payload_axis_tready(rx_eth_payload_axis_tready),
-|    .m_eth_payload_axis_tlast(rx_eth_payload_axis_tlast),
-|    .m_eth_payload_axis_tuser(rx_eth_payload_axis_tuser),
-|    // Status signals
-|    .busy(),
-|    .error_header_early_termination()
-|);
-|
-|// eth_axis_tx
-|// eth_axis_tx_inst (
-|//     .clk(clock),
-|//     .rst(reset),
-|//     // Ethernet frame input
-|//     .s_eth_hdr_valid(tx_eth_hdr_valid),
-|//     .s_eth_hdr_ready(tx_eth_hdr_ready),
-|//     .s_eth_dest_mac(tx_eth_dest_mac),
-|//     .s_eth_src_mac(tx_eth_src_mac),
-|//     .s_eth_type(tx_eth_type),
-|//     .s_eth_payload_axis_tdata(tx_eth_payload_axis_tdata),
-|//     .s_eth_payload_axis_tvalid(tx_eth_payload_axis_tvalid),
-|//     .s_eth_payload_axis_tready(tx_eth_payload_axis_tready),
-|//     .s_eth_payload_axis_tlast(tx_eth_payload_axis_tlast),
-|//     .s_eth_payload_axis_tuser(tx_eth_payload_axis_tuser),
-|//     // AXI output
-|//     .m_axis_tdata(tx_axis_tdata),
-|//     .m_axis_tvalid(tx_axis_tvalid),
-|//     .m_axis_tready(tx_axis_tready),
-|//     .m_axis_tlast(tx_axis_tlast),
-|//     .m_axis_tuser(tx_axis_tuser),
-|//     // Status signals
-|//     .busy()
-|// );
 |
 |udp_complete
 |udp_complete_inst (

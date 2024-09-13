@@ -30,6 +30,15 @@ module Ethernet(
   output [3:0] io_phy_txd
 );
 
+  wire        _eth_axis_rx_s_axis_tready;
+  wire        _eth_axis_rx_m_eth_hdr_valid;
+  wire [47:0] _eth_axis_rx_m_eth_dest_mac;
+  wire [47:0] _eth_axis_rx_m_eth_src_mac;
+  wire [15:0] _eth_axis_rx_m_eth_type;
+  wire [7:0]  _eth_axis_rx_m_eth_payload_axis_tdata;
+  wire        _eth_axis_rx_m_eth_payload_axis_tvalid;
+  wire        _eth_axis_rx_m_eth_payload_axis_tlast;
+  wire        _eth_axis_rx_m_eth_payload_axis_tuser;
   wire        _eth_axis_tx_s_eth_hdr_ready;
   wire        _eth_axis_tx_s_eth_payload_axis_tready;
   wire [7:0]  _eth_axis_tx_m_axis_tdata;
@@ -45,6 +54,12 @@ module Ethernet(
   wire        _eth_wrapper_tx_eth_payload_axis_tlast;
   wire        _eth_wrapper_tx_eth_payload_axis_tuser;
   wire        _eth_wrapper_tx_axis_tready;
+  wire        _eth_wrapper_rx_eth_hdr_ready;
+  wire        _eth_wrapper_rx_eth_payload_axis_tready;
+  wire [7:0]  _eth_wrapper_rx_axis_tdata;
+  wire        _eth_wrapper_rx_axis_tvalid;
+  wire        _eth_wrapper_rx_axis_tlast;
+  wire        _eth_wrapper_rx_axis_tuser;
   EthernetWrap eth_wrapper (
     .clock                      (clock),
     .reset                      (reset),
@@ -88,7 +103,22 @@ module Ethernet(
     .tx_axis_tvalid             (_eth_axis_tx_m_axis_tvalid),
     .tx_axis_tready             (_eth_wrapper_tx_axis_tready),
     .tx_axis_tlast              (_eth_axis_tx_m_axis_tlast),
-    .tx_axis_tuser              (_eth_axis_tx_m_axis_tuser)
+    .tx_axis_tuser              (_eth_axis_tx_m_axis_tuser),
+    .rx_eth_hdr_valid           (_eth_axis_rx_m_eth_hdr_valid),
+    .rx_eth_hdr_ready           (_eth_wrapper_rx_eth_hdr_ready),
+    .rx_eth_dest_mac            (_eth_axis_rx_m_eth_dest_mac),
+    .rx_eth_src_mac             (_eth_axis_rx_m_eth_src_mac),
+    .rx_eth_type                (_eth_axis_rx_m_eth_type),
+    .rx_eth_payload_axis_tdata  (_eth_axis_rx_m_eth_payload_axis_tdata),
+    .rx_eth_payload_axis_tvalid (_eth_axis_rx_m_eth_payload_axis_tvalid),
+    .rx_eth_payload_axis_tready (_eth_wrapper_rx_eth_payload_axis_tready),
+    .rx_eth_payload_axis_tlast  (_eth_axis_rx_m_eth_payload_axis_tlast),
+    .rx_eth_payload_axis_tuser  (_eth_axis_rx_m_eth_payload_axis_tuser),
+    .rx_axis_tdata              (_eth_wrapper_rx_axis_tdata),
+    .rx_axis_tvalid             (_eth_wrapper_rx_axis_tvalid),
+    .rx_axis_tready             (_eth_axis_rx_s_axis_tready),
+    .rx_axis_tlast              (_eth_wrapper_rx_axis_tlast),
+    .rx_axis_tuser              (_eth_wrapper_rx_axis_tuser)
   );
   eth_axis_tx #(
     .DATA_WIDTH(8)
@@ -111,6 +141,29 @@ module Ethernet(
     .m_axis_tlast              (_eth_axis_tx_m_axis_tlast),
     .m_axis_tuser              (_eth_axis_tx_m_axis_tuser),
     .busy                      (/* unused */)
+  );
+  eth_axis_rx #(
+    .DATA_WIDTH(8)
+  ) eth_axis_rx (
+    .clk                            (clock),
+    .rst                            (reset),
+    .s_axis_tdata                   (_eth_wrapper_rx_axis_tdata),
+    .s_axis_tvalid                  (_eth_wrapper_rx_axis_tvalid),
+    .s_axis_tready                  (_eth_axis_rx_s_axis_tready),
+    .s_axis_tlast                   (_eth_wrapper_rx_axis_tlast),
+    .s_axis_tuser                   (_eth_wrapper_rx_axis_tuser),
+    .m_eth_hdr_valid                (_eth_axis_rx_m_eth_hdr_valid),
+    .m_eth_hdr_ready                (_eth_wrapper_rx_eth_hdr_ready),
+    .m_eth_dest_mac                 (_eth_axis_rx_m_eth_dest_mac),
+    .m_eth_src_mac                  (_eth_axis_rx_m_eth_src_mac),
+    .m_eth_type                     (_eth_axis_rx_m_eth_type),
+    .m_eth_payload_axis_tdata       (_eth_axis_rx_m_eth_payload_axis_tdata),
+    .m_eth_payload_axis_tvalid      (_eth_axis_rx_m_eth_payload_axis_tvalid),
+    .m_eth_payload_axis_tready      (_eth_wrapper_rx_eth_payload_axis_tready),
+    .m_eth_payload_axis_tlast       (_eth_axis_rx_m_eth_payload_axis_tlast),
+    .m_eth_payload_axis_tuser       (_eth_axis_rx_m_eth_payload_axis_tuser),
+    .busy                           (/* unused */),
+    .error_header_early_termination (/* unused */)
   );
 endmodule
 

@@ -11,6 +11,7 @@ class eth_axis_tx(
   val io = IO(new Bundle {
     val clk = Input(Clock())
     val rst = Input(Reset())
+    
     val s_eth_hdr_valid = Input(Bool())
     val s_eth_hdr_ready = Output(Bool())
     val s_eth_dest_mac = Input(UInt(48.W))
