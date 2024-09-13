@@ -35,6 +35,23 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
     val phy_tx_clk = Output(Bool())
     val phy_tx_en = Output(Bool())
     val phy_txd = Output(UInt(4.W))
+
+    val tx_eth_hdr_valid = Output(Bool())
+    val tx_eth_hdr_ready = Input(Bool())
+    val tx_eth_dest_mac = Output(UInt(48.W))
+    val tx_eth_src_mac = Output(UInt(48.W))
+    val tx_eth_type = Output(UInt(16.W))
+    val tx_eth_payload_axis_tdata = Output(UInt(8.W))
+    val tx_eth_payload_axis_tvalid = Output(Bool())
+    val tx_eth_payload_axis_tready = Input(Bool())
+    val tx_eth_payload_axis_tlast = Output(Bool())
+    val tx_eth_payload_axis_tuser = Output(Bool())
+
+    val tx_axis_tdata = Input(UInt(8.W))
+    val tx_axis_tvalid = Input(Bool())
+    val tx_axis_tready = Output(Bool())
+    val tx_axis_tlast = Input(Bool())
+    val tx_axis_tuser = Input(Bool())
   })
 
   setInline("EthernetWrap.v",
@@ -77,8 +94,26 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
       |    output wire       phy_tx_en,
       |    input  wire       phy_col,
       |    input  wire       phy_crs,
-      |    output wire       phy_reset_n
+      |    output wire       phy_reset_n,
       |
+      |
+      |
+      |output tx_eth_hdr_valid,
+      |input tx_eth_hdr_ready,
+      |output [47:0] tx_eth_dest_mac,
+      |output [47:0] tx_eth_src_mac,
+      |output [15:0] tx_eth_type,
+      |output [7:0] tx_eth_payload_axis_tdata,
+      |output tx_eth_payload_axis_tvalid,
+      |input tx_eth_payload_axis_tready,
+      |output tx_eth_payload_axis_tlast,
+      |output tx_eth_payload_axis_tuser,
+      |
+      |input [7:0] tx_axis_tdata,
+      |input tx_axis_tvalid,
+      |output tx_axis_tready,
+      |input tx_axis_tlast,
+      |input tx_axis_tuser
       |);
 |
 |// AXI between MAC and Ethernet modules
@@ -88,11 +123,6 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
 |wire rx_axis_tlast;
 |wire rx_axis_tuser;
 |
-|wire [7:0] tx_axis_tdata;
-|wire tx_axis_tvalid;
-|wire tx_axis_tready;
-|wire tx_axis_tlast;
-|wire tx_axis_tuser;
 |
 |// Ethernet frame between Ethernet modules and UDP stack
 |wire rx_eth_hdr_ready;
@@ -106,16 +136,6 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
 |wire rx_eth_payload_axis_tlast;
 |wire rx_eth_payload_axis_tuser;
 |
-|wire tx_eth_hdr_ready;
-|wire tx_eth_hdr_valid;
-|wire [47:0] tx_eth_dest_mac;
-|wire [47:0] tx_eth_src_mac;
-|wire [15:0] tx_eth_type;
-|wire [7:0] tx_eth_payload_axis_tdata;
-|wire tx_eth_payload_axis_tvalid;
-|wire tx_eth_payload_axis_tready;
-|wire tx_eth_payload_axis_tlast;
-|wire tx_eth_payload_axis_tuser;
 |
 |// IP frame connections
 |wire rx_ip_hdr_valid;
@@ -387,30 +407,30 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
 |    .error_header_early_termination()
 |);
 |
-|eth_axis_tx
-|eth_axis_tx_inst (
-|    .clk(clock),
-|    .rst(reset),
-|    // Ethernet frame input
-|    .s_eth_hdr_valid(tx_eth_hdr_valid),
-|    .s_eth_hdr_ready(tx_eth_hdr_ready),
-|    .s_eth_dest_mac(tx_eth_dest_mac),
-|    .s_eth_src_mac(tx_eth_src_mac),
-|    .s_eth_type(tx_eth_type),
-|    .s_eth_payload_axis_tdata(tx_eth_payload_axis_tdata),
-|    .s_eth_payload_axis_tvalid(tx_eth_payload_axis_tvalid),
-|    .s_eth_payload_axis_tready(tx_eth_payload_axis_tready),
-|    .s_eth_payload_axis_tlast(tx_eth_payload_axis_tlast),
-|    .s_eth_payload_axis_tuser(tx_eth_payload_axis_tuser),
-|    // AXI output
-|    .m_axis_tdata(tx_axis_tdata),
-|    .m_axis_tvalid(tx_axis_tvalid),
-|    .m_axis_tready(tx_axis_tready),
-|    .m_axis_tlast(tx_axis_tlast),
-|    .m_axis_tuser(tx_axis_tuser),
-|    // Status signals
-|    .busy()
-|);
+|// eth_axis_tx
+|// eth_axis_tx_inst (
+|//     .clk(clock),
+|//     .rst(reset),
+|//     // Ethernet frame input
+|//     .s_eth_hdr_valid(tx_eth_hdr_valid),
+|//     .s_eth_hdr_ready(tx_eth_hdr_ready),
+|//     .s_eth_dest_mac(tx_eth_dest_mac),
+|//     .s_eth_src_mac(tx_eth_src_mac),
+|//     .s_eth_type(tx_eth_type),
+|//     .s_eth_payload_axis_tdata(tx_eth_payload_axis_tdata),
+|//     .s_eth_payload_axis_tvalid(tx_eth_payload_axis_tvalid),
+|//     .s_eth_payload_axis_tready(tx_eth_payload_axis_tready),
+|//     .s_eth_payload_axis_tlast(tx_eth_payload_axis_tlast),
+|//     .s_eth_payload_axis_tuser(tx_eth_payload_axis_tuser),
+|//     // AXI output
+|//     .m_axis_tdata(tx_axis_tdata),
+|//     .m_axis_tvalid(tx_axis_tvalid),
+|//     .m_axis_tready(tx_axis_tready),
+|//     .m_axis_tlast(tx_axis_tlast),
+|//     .m_axis_tuser(tx_axis_tuser),
+|//     // Status signals
+|//     .busy()
+|// );
 |
 |udp_complete
 |udp_complete_inst (

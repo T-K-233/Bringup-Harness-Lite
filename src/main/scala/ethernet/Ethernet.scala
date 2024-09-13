@@ -65,4 +65,25 @@ class Ethernet extends Module {
   io.phy_tx_clk := eth_wrapper.io.phy_tx_clk
   io.phy_tx_en := eth_wrapper.io.phy_tx_en
   io.phy_txd := eth_wrapper.io.phy_txd
+
+  val eth_axis_tx = Module(new eth_axis_tx)
+
+  eth_axis_tx.io.clk := clock
+  eth_axis_tx.io.rst := reset
+  eth_axis_tx.io.s_eth_hdr_valid := eth_wrapper.io.tx_eth_hdr_valid
+  eth_wrapper.io.tx_eth_hdr_ready := eth_axis_tx.io.s_eth_hdr_ready
+  eth_axis_tx.io.s_eth_dest_mac := eth_wrapper.io.tx_eth_dest_mac
+  eth_axis_tx.io.s_eth_src_mac := eth_wrapper.io.tx_eth_src_mac
+  eth_axis_tx.io.s_eth_type := eth_wrapper.io.tx_eth_type
+  eth_axis_tx.io.s_eth_payload_axis_tdata := eth_wrapper.io.tx_eth_payload_axis_tdata
+  eth_axis_tx.io.s_eth_payload_axis_tvalid := eth_wrapper.io.tx_eth_payload_axis_tvalid
+  eth_wrapper.io.tx_eth_payload_axis_tready := eth_axis_tx.io.s_eth_payload_axis_tready
+  eth_axis_tx.io.s_eth_payload_axis_tlast := eth_wrapper.io.tx_eth_payload_axis_tlast
+  eth_axis_tx.io.s_eth_payload_axis_tuser := eth_wrapper.io.tx_eth_payload_axis_tuser
+
+  eth_wrapper.io.tx_axis_tdata := eth_axis_tx.io.m_axis_tdata
+  eth_wrapper.io.tx_axis_tvalid := eth_axis_tx.io.m_axis_tvalid
+  eth_axis_tx.io.m_axis_tready := eth_wrapper.io.tx_axis_tready
+  eth_wrapper.io.tx_axis_tlast := eth_axis_tx.io.m_axis_tlast
+  eth_wrapper.io.tx_axis_tuser := eth_axis_tx.io.m_axis_tuser
 }
