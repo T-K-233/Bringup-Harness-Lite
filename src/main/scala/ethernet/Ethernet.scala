@@ -109,4 +109,35 @@ class Ethernet extends Module {
   eth_axis_rx.io.m_eth_payload_axis_tready := eth_wrapper.io.rx_eth_payload_axis_tready
   eth_wrapper.io.rx_eth_payload_axis_tlast := eth_axis_rx.io.m_eth_payload_axis_tlast
   eth_wrapper.io.rx_eth_payload_axis_tuser := eth_axis_rx.io.m_eth_payload_axis_tuser
+
+  val udp_payload_fifo = Module(new axis_fifo(
+    DEPTH = 8192,
+    DATA_WIDTH = 8,
+    KEEP_ENABLE = 0,
+    ID_ENABLE = 0,
+    ID_WIDTH = 8,
+    DEST_ENABLE = 0,
+    DEST_WIDTH = 8,
+    USER_ENABLE = 1,
+    USER_WIDTH = 1,
+  ))
+
+  udp_payload_fifo.io.clk := clock
+  udp_payload_fifo.io.rst := reset
+
+  udp_payload_fifo.io.s_axis_tdata := eth_wrapper.io.rx_fifo_udp_payload_axis_tdata
+  udp_payload_fifo.io.s_axis_tvalid := eth_wrapper.io.rx_fifo_udp_payload_axis_tvalid
+  eth_wrapper.io.rx_fifo_udp_payload_axis_tready := udp_payload_fifo.io.s_axis_tready
+  udp_payload_fifo.io.s_axis_tlast := eth_wrapper.io.rx_fifo_udp_payload_axis_tlast
+  udp_payload_fifo.io.s_axis_tid := 0.U(8.W)
+  udp_payload_fifo.io.s_axis_tdest := 0.U(8.W)
+  udp_payload_fifo.io.s_axis_tuser := eth_wrapper.io.rx_fifo_udp_payload_axis_tuser
+
+  eth_wrapper.io.tx_fifo_udp_payload_axis_tdata := udp_payload_fifo.io.m_axis_tdata
+  eth_wrapper.io.tx_fifo_udp_payload_axis_tvalid := udp_payload_fifo.io.m_axis_tvalid
+  udp_payload_fifo.io.m_axis_tready := eth_wrapper.io.tx_fifo_udp_payload_axis_tready
+  eth_wrapper.io.tx_fifo_udp_payload_axis_tlast := udp_payload_fifo.io.m_axis_tlast
+  eth_wrapper.io.tx_fifo_udp_payload_axis_tuser := udp_payload_fifo.io.m_axis_tuser
+
+
 }

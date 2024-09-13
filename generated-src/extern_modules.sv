@@ -13,3 +13,5 @@
 
 // external module eth_axis_rx
 
+// external module axis_fifo
+
