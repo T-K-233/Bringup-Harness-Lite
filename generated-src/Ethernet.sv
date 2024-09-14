@@ -64,8 +64,6 @@ module Ethernet(
   wire        _udp_complete_m_eth_payload_axis_tvalid;
   wire        _udp_complete_m_eth_payload_axis_tlast;
   wire        _udp_complete_m_eth_payload_axis_tuser;
-  wire        _udp_complete_s_ip_hdr_ready;
-  wire        _udp_complete_s_ip_payload_axis_tready;
   wire [31:0] _udp_complete_m_ip_source_ip;
   wire        _udp_complete_s_udp_payload_axis_tready;
   wire [15:0] _udp_complete_m_udp_source_port;
@@ -76,18 +74,6 @@ module Ethernet(
   wire        _udp_complete_m_udp_payload_axis_tlast;
   wire        _udp_complete_m_udp_payload_axis_tuser;
   wire        _eth_wrapper_rx_udp_hdr_ready;
-  wire        _eth_wrapper_tx_ip_hdr_valid;
-  wire [5:0]  _eth_wrapper_tx_ip_dscp;
-  wire [1:0]  _eth_wrapper_tx_ip_ecn;
-  wire [15:0] _eth_wrapper_tx_ip_length;
-  wire [7:0]  _eth_wrapper_tx_ip_ttl;
-  wire [7:0]  _eth_wrapper_tx_ip_protocol;
-  wire [31:0] _eth_wrapper_tx_ip_source_ip;
-  wire [31:0] _eth_wrapper_tx_ip_dest_ip;
-  wire [7:0]  _eth_wrapper_tx_ip_payload_axis_tdata;
-  wire        _eth_wrapper_tx_ip_payload_axis_tvalid;
-  wire        _eth_wrapper_tx_ip_payload_axis_tlast;
-  wire        _eth_wrapper_tx_ip_payload_axis_tuser;
   wire        _eth_wrapper_tx_udp_hdr_valid;
   EthernetWrap eth_wrapper (
     .clock                           (clock),
@@ -111,30 +97,8 @@ module Ethernet(
     .phy_reset_n                     (/* unused */),
     .tx_eth_hdr_ready                (_eth_axis_tx_s_eth_hdr_ready),
     .rx_udp_hdr_ready                (_eth_wrapper_rx_udp_hdr_ready),
-    .tx_ip_hdr_valid                 (_eth_wrapper_tx_ip_hdr_valid),
-    .tx_ip_hdr_ready                 (_udp_complete_s_ip_hdr_ready),
-    .tx_ip_dscp                      (_eth_wrapper_tx_ip_dscp),
-    .tx_ip_ecn                       (_eth_wrapper_tx_ip_ecn),
-    .tx_ip_length                    (_eth_wrapper_tx_ip_length),
-    .tx_ip_ttl                       (_eth_wrapper_tx_ip_ttl),
-    .tx_ip_protocol                  (_eth_wrapper_tx_ip_protocol),
-    .tx_ip_source_ip                 (_eth_wrapper_tx_ip_source_ip),
-    .tx_ip_dest_ip                   (_eth_wrapper_tx_ip_dest_ip),
-    .tx_ip_payload_axis_tdata        (_eth_wrapper_tx_ip_payload_axis_tdata),
-    .tx_ip_payload_axis_tvalid       (_eth_wrapper_tx_ip_payload_axis_tvalid),
-    .tx_ip_payload_axis_tready       (_udp_complete_s_ip_payload_axis_tready),
-    .tx_ip_payload_axis_tlast        (_eth_wrapper_tx_ip_payload_axis_tlast),
-    .tx_ip_payload_axis_tuser        (_eth_wrapper_tx_ip_payload_axis_tuser),
+    .rx_udp_dest_port                (_udp_complete_m_udp_dest_port),
     .tx_udp_hdr_valid                (_eth_wrapper_tx_udp_hdr_valid),
-    .tx_udp_ip_dscp                  (/* unused */),
-    .tx_udp_ip_ecn                   (/* unused */),
-    .tx_udp_ip_ttl                   (/* unused */),
-    .tx_udp_ip_source_ip             (/* unused */),
-    .tx_udp_ip_dest_ip               (/* unused */),
-    .tx_udp_source_port              (/* unused */),
-    .tx_udp_dest_port                (/* unused */),
-    .tx_udp_length                   (/* unused */),
-    .tx_udp_checksum                 (/* unused */),
     .tx_fifo_udp_payload_axis_tdata  (_udp_payload_fifo_m_axis_tdata),
     .tx_fifo_udp_payload_axis_tvalid (_udp_payload_fifo_m_axis_tvalid),
     .tx_fifo_udp_payload_axis_tlast  (_udp_payload_fifo_m_axis_tlast),
@@ -174,20 +138,20 @@ module Ethernet(
     .m_eth_payload_axis_tready              (_eth_axis_tx_s_eth_payload_axis_tready),
     .m_eth_payload_axis_tlast               (_udp_complete_m_eth_payload_axis_tlast),
     .m_eth_payload_axis_tuser               (_udp_complete_m_eth_payload_axis_tuser),
-    .s_ip_hdr_valid                         (_eth_wrapper_tx_ip_hdr_valid),
-    .s_ip_hdr_ready                         (_udp_complete_s_ip_hdr_ready),
-    .s_ip_dscp                              (_eth_wrapper_tx_ip_dscp),
-    .s_ip_ecn                               (_eth_wrapper_tx_ip_ecn),
-    .s_ip_length                            (_eth_wrapper_tx_ip_length),
-    .s_ip_ttl                               (_eth_wrapper_tx_ip_ttl),
-    .s_ip_protocol                          (_eth_wrapper_tx_ip_protocol),
-    .s_ip_source_ip                         (_eth_wrapper_tx_ip_source_ip),
-    .s_ip_dest_ip                           (_eth_wrapper_tx_ip_dest_ip),
-    .s_ip_payload_axis_tdata                (_eth_wrapper_tx_ip_payload_axis_tdata),
-    .s_ip_payload_axis_tvalid               (_eth_wrapper_tx_ip_payload_axis_tvalid),
-    .s_ip_payload_axis_tready               (_udp_complete_s_ip_payload_axis_tready),
-    .s_ip_payload_axis_tlast                (_eth_wrapper_tx_ip_payload_axis_tlast),
-    .s_ip_payload_axis_tuser                (_eth_wrapper_tx_ip_payload_axis_tuser),
+    .s_ip_hdr_valid                         (1'h0),
+    .s_ip_hdr_ready                         (/* unused */),
+    .s_ip_dscp                              (6'h0),
+    .s_ip_ecn                               (2'h0),
+    .s_ip_length                            (16'h0),
+    .s_ip_ttl                               (8'h0),
+    .s_ip_protocol                          (8'h0),
+    .s_ip_source_ip                         (32'h0),
+    .s_ip_dest_ip                           (32'h0),
+    .s_ip_payload_axis_tdata                (8'h0),
+    .s_ip_payload_axis_tvalid               (1'h0),
+    .s_ip_payload_axis_tready               (/* unused */),
+    .s_ip_payload_axis_tlast                (1'h0),
+    .s_ip_payload_axis_tuser                (1'h0),
     .m_ip_hdr_valid                         (/* unused */),
     .m_ip_hdr_ready                         (1'h1),
     .m_ip_eth_dest_mac                      (/* unused */),

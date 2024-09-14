@@ -161,21 +161,54 @@ class Ethernet extends Module {
   tx_eth_payload_axis_tlast := udp_complete.io.m_eth_payload_axis_tlast
   tx_eth_payload_axis_tuser := udp_complete.io.m_eth_payload_axis_tuser
 
+  val tx_ip_hdr_valid = Wire(Bool())
+  val tx_ip_hdr_ready = Wire(Bool())
+  val tx_ip_dscp = Wire(UInt(6.W))
+  val tx_ip_ecn = Wire(UInt(2.W))
+  val tx_ip_length = Wire(UInt(16.W))
+  val tx_ip_ttl = Wire(UInt(8.W))
+  val tx_ip_protocol = Wire(UInt(8.W))
+  val tx_ip_source_ip = Wire(UInt(32.W))
+  val tx_ip_dest_ip = Wire(UInt(32.W))
+
+  val tx_ip_payload_axis_tdata = Wire(UInt(8.W))
+  val tx_ip_payload_axis_tvalid = Wire(Bool())
+  val tx_ip_payload_axis_tready = Wire(Bool())
+  val tx_ip_payload_axis_tlast = Wire(Bool())
+  val tx_ip_payload_axis_tuser = Wire(Bool())
+
+
+  tx_ip_hdr_valid := 0.U(1.W)
+  tx_ip_dscp := 0.U(6.W)
+  tx_ip_ecn := 0.U(2.W)
+  tx_ip_length := 0.U(16.W)
+  tx_ip_ttl := 0.U(8.W)
+  tx_ip_protocol := 0.U(8.W)
+  tx_ip_source_ip := 0.U(32.W)
+  tx_ip_dest_ip := 0.U(32.W)
+
+  tx_ip_payload_axis_tdata := 0.U(8.W)
+  tx_ip_payload_axis_tvalid := 0.U(1.W)
+  tx_ip_payload_axis_tlast := 0.U(1.W)
+  tx_ip_payload_axis_tuser := 0.U(1.W)
+
+
+
   // IP frame input
-  udp_complete.io.s_ip_hdr_valid := eth_wrapper.io.tx_ip_hdr_valid
-  eth_wrapper.io.tx_ip_hdr_ready := udp_complete.io.s_ip_hdr_ready
-  udp_complete.io.s_ip_dscp := eth_wrapper.io.tx_ip_dscp
-  udp_complete.io.s_ip_ecn := eth_wrapper.io.tx_ip_ecn
-  udp_complete.io.s_ip_length := eth_wrapper.io.tx_ip_length
-  udp_complete.io.s_ip_ttl := eth_wrapper.io.tx_ip_ttl
-  udp_complete.io.s_ip_protocol := eth_wrapper.io.tx_ip_protocol
-  udp_complete.io.s_ip_source_ip := eth_wrapper.io.tx_ip_source_ip
-  udp_complete.io.s_ip_dest_ip := eth_wrapper.io.tx_ip_dest_ip
-  udp_complete.io.s_ip_payload_axis_tdata := eth_wrapper.io.tx_ip_payload_axis_tdata
-  udp_complete.io.s_ip_payload_axis_tvalid := eth_wrapper.io.tx_ip_payload_axis_tvalid
-  eth_wrapper.io.tx_ip_payload_axis_tready := udp_complete.io.s_ip_payload_axis_tready
-  udp_complete.io.s_ip_payload_axis_tlast := eth_wrapper.io.tx_ip_payload_axis_tlast
-  udp_complete.io.s_ip_payload_axis_tuser := eth_wrapper.io.tx_ip_payload_axis_tuser
+  udp_complete.io.s_ip_hdr_valid := tx_ip_hdr_valid
+  tx_ip_hdr_ready := udp_complete.io.s_ip_hdr_ready
+  udp_complete.io.s_ip_dscp := tx_ip_dscp
+  udp_complete.io.s_ip_ecn := tx_ip_ecn
+  udp_complete.io.s_ip_length := tx_ip_length
+  udp_complete.io.s_ip_ttl := tx_ip_ttl
+  udp_complete.io.s_ip_protocol := tx_ip_protocol
+  udp_complete.io.s_ip_source_ip := tx_ip_source_ip
+  udp_complete.io.s_ip_dest_ip := tx_ip_dest_ip
+  udp_complete.io.s_ip_payload_axis_tdata := tx_ip_payload_axis_tdata
+  udp_complete.io.s_ip_payload_axis_tvalid := tx_ip_payload_axis_tvalid
+  tx_ip_payload_axis_tready := udp_complete.io.s_ip_payload_axis_tready
+  udp_complete.io.s_ip_payload_axis_tlast := tx_ip_payload_axis_tlast
+  udp_complete.io.s_ip_payload_axis_tuser := tx_ip_payload_axis_tuser
 
   // IP frame output
   rx_ip_hdr_valid := udp_complete.io.m_ip_hdr_valid
@@ -212,6 +245,7 @@ class Ethernet extends Module {
   udp_complete.io.s_udp_ip_source_ip := local_ip
   udp_complete.io.s_udp_ip_dest_ip := udp_complete.io.m_ip_source_ip
   udp_complete.io.s_udp_source_port := udp_complete.io.m_udp_dest_port
+  eth_wrapper.io.rx_udp_dest_port := udp_complete.io.m_udp_dest_port
   udp_complete.io.s_udp_dest_port := udp_complete.io.m_udp_source_port
   udp_complete.io.s_udp_length := udp_complete.io.m_udp_length
   udp_complete.io.s_udp_checksum := 0.U(16.W)
