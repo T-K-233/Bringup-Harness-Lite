@@ -46,7 +46,219 @@ class Ethernet extends Module {
   val rx_axis_tlast = Wire(Bool())
   val rx_axis_tuser = Wire(Bool())
 
+
+  val rx_eth_hdr_valid = Wire(Bool())
+  val rx_eth_hdr_ready = Wire(Bool())
+  val rx_eth_dest_mac = Wire(UInt(48.W))
+  val rx_eth_src_mac = Wire(UInt(48.W))
+  val rx_eth_type = Wire(UInt(16.W))
+  val rx_eth_payload_axis_tdata = Wire(UInt(8.W))
+  val rx_eth_payload_axis_tvalid = Wire(Bool())
+  val rx_eth_payload_axis_tready = Wire(Bool())
+  val rx_eth_payload_axis_tlast = Wire(Bool())
+  val rx_eth_payload_axis_tuser = Wire(Bool())
+
+  val tx_eth_hdr_valid = Wire(Bool())
+  val tx_eth_hdr_ready = Wire(Bool())
+  val tx_eth_dest_mac = Wire(UInt(48.W))
+  val tx_eth_src_mac = Wire(UInt(48.W))
+  val tx_eth_type = Wire(UInt(16.W))
+  val tx_eth_payload_axis_tdata = Wire(UInt(8.W))
+  val tx_eth_payload_axis_tvalid = Wire(Bool())
+  val tx_eth_payload_axis_tready = Wire(Bool())
+  val tx_eth_payload_axis_tlast = Wire(Bool())
+  val tx_eth_payload_axis_tuser = Wire(Bool())
+
+
+
+  val tx_fifo_udp_payload_axis_tdata = Wire(UInt(8.W))
+  val tx_fifo_udp_payload_axis_tvalid = Wire(Bool())
+  val tx_fifo_udp_payload_axis_tready = Wire(Bool())
+  val tx_fifo_udp_payload_axis_tlast = Wire(Bool())
+  val tx_fifo_udp_payload_axis_tuser = Wire(Bool())
+
+  val rx_fifo_udp_payload_axis_tdata = Wire(UInt(8.W))
+  val rx_fifo_udp_payload_axis_tvalid = Wire(Bool())
+  val rx_fifo_udp_payload_axis_tready = Wire(Bool())
+  val rx_fifo_udp_payload_axis_tlast = Wire(Bool())
+  val rx_fifo_udp_payload_axis_tuser = Wire(Bool())
+
+
+
+  val rx_ip_hdr_valid = Wire(Bool())
+  val rx_ip_hdr_ready = Wire(Bool())
+  val rx_ip_eth_dest_mac = Wire(UInt(48.W))
+  val rx_ip_eth_src_mac = Wire(UInt(48.W))
+  val rx_ip_eth_type = Wire(UInt(16.W))
+  val rx_ip_version = Wire(UInt(4.W))
+  val rx_ip_ihl = Wire(UInt(4.W))
+  val rx_ip_dscp = Wire(UInt(6.W))
+  val rx_ip_ecn = Wire(UInt(2.W))
+  val rx_ip_length = Wire(UInt(16.W))
+  val rx_ip_identification = Wire(UInt(16.W))
+  val rx_ip_flags = Wire(UInt(3.W))
+  val rx_ip_fragment_offset = Wire(UInt(13.W))
+  val rx_ip_ttl = Wire(UInt(8.W))
+  val rx_ip_protocol = Wire(UInt(8.W))
+  val rx_ip_header_checksum = Wire(UInt(16.W))
+  val rx_ip_source_ip = Wire(UInt(32.W))
+  val rx_ip_dest_ip = Wire(UInt(32.W))
+  val rx_ip_payload_axis_tdata = Wire(UInt(8.W))
+  val rx_ip_payload_axis_tvalid = Wire(Bool())
+  val rx_ip_payload_axis_tready = Wire(Bool())
+  val rx_ip_payload_axis_tlast = Wire(Bool())
+  val rx_ip_payload_axis_tuser = Wire(Bool())
+
+
+
+
+  rx_ip_hdr_ready := 1.U(1.W)
+
+  rx_ip_payload_axis_tready := 1.U(1.W)
+
+
+
+
   val eth_wrapper = Module(new EthernetWrap)
+
+  val udp_complete = Module(new udp_complete)
+  val eth_axis_tx = Module(new eth_axis_tx)
+  val eth_axis_rx = Module(new eth_axis_rx)
+
+
+  // Configuration
+  val local_mac   = 0x02_00_00_00_00_00L.U(48.W)
+  val local_ip    = 0xac_1c_00_06L.U(32.W)
+  val gateway_ip  = 0xac_17_20_01L.U(32.W)
+  val subnet_mask = 0xff_ff_ff_00L.U(32.W)
+
+  
+
+  udp_complete.io.clk := clock
+  udp_complete.io.rst := reset
+
+  // Ethernet frame input
+  udp_complete.io.s_eth_hdr_valid := rx_eth_hdr_valid
+  rx_eth_hdr_ready := udp_complete.io.s_eth_hdr_ready
+  udp_complete.io.s_eth_dest_mac := rx_eth_dest_mac
+  udp_complete.io.s_eth_src_mac := rx_eth_src_mac
+  udp_complete.io.s_eth_type := rx_eth_type
+  udp_complete.io.s_eth_payload_axis_tdata := rx_eth_payload_axis_tdata
+  udp_complete.io.s_eth_payload_axis_tvalid := rx_eth_payload_axis_tvalid
+  rx_eth_payload_axis_tready := udp_complete.io.s_eth_payload_axis_tready
+  udp_complete.io.s_eth_payload_axis_tlast := rx_eth_payload_axis_tlast
+  udp_complete.io.s_eth_payload_axis_tuser := rx_eth_payload_axis_tuser
+
+  // Ethernet frame output
+  tx_eth_hdr_valid := udp_complete.io.m_eth_hdr_valid
+  udp_complete.io.m_eth_hdr_ready := tx_eth_hdr_ready
+  tx_eth_dest_mac := udp_complete.io.m_eth_dest_mac
+  tx_eth_src_mac := udp_complete.io.m_eth_src_mac
+  tx_eth_type := udp_complete.io.m_eth_type
+  tx_eth_payload_axis_tdata := udp_complete.io.m_eth_payload_axis_tdata
+  tx_eth_payload_axis_tvalid := udp_complete.io.m_eth_payload_axis_tvalid
+  udp_complete.io.m_eth_payload_axis_tready := tx_eth_payload_axis_tready
+  tx_eth_payload_axis_tlast := udp_complete.io.m_eth_payload_axis_tlast
+  tx_eth_payload_axis_tuser := udp_complete.io.m_eth_payload_axis_tuser
+
+  // IP frame input
+  udp_complete.io.s_ip_hdr_valid := eth_wrapper.io.tx_ip_hdr_valid
+  eth_wrapper.io.tx_ip_hdr_ready := udp_complete.io.s_ip_hdr_ready
+  udp_complete.io.s_ip_dscp := eth_wrapper.io.tx_ip_dscp
+  udp_complete.io.s_ip_ecn := eth_wrapper.io.tx_ip_ecn
+  udp_complete.io.s_ip_length := eth_wrapper.io.tx_ip_length
+  udp_complete.io.s_ip_ttl := eth_wrapper.io.tx_ip_ttl
+  udp_complete.io.s_ip_protocol := eth_wrapper.io.tx_ip_protocol
+  udp_complete.io.s_ip_source_ip := eth_wrapper.io.tx_ip_source_ip
+  udp_complete.io.s_ip_dest_ip := eth_wrapper.io.tx_ip_dest_ip
+  udp_complete.io.s_ip_payload_axis_tdata := eth_wrapper.io.tx_ip_payload_axis_tdata
+  udp_complete.io.s_ip_payload_axis_tvalid := eth_wrapper.io.tx_ip_payload_axis_tvalid
+  eth_wrapper.io.tx_ip_payload_axis_tready := udp_complete.io.s_ip_payload_axis_tready
+  udp_complete.io.s_ip_payload_axis_tlast := eth_wrapper.io.tx_ip_payload_axis_tlast
+  udp_complete.io.s_ip_payload_axis_tuser := eth_wrapper.io.tx_ip_payload_axis_tuser
+
+  // IP frame output
+  rx_ip_hdr_valid := udp_complete.io.m_ip_hdr_valid
+  udp_complete.io.m_ip_hdr_ready := rx_ip_hdr_ready
+  rx_ip_eth_dest_mac := udp_complete.io.m_ip_eth_dest_mac
+  rx_ip_eth_src_mac := udp_complete.io.m_ip_eth_src_mac
+  rx_ip_eth_type := udp_complete.io.m_ip_eth_type
+  rx_ip_version := udp_complete.io.m_ip_version
+  rx_ip_ihl := udp_complete.io.m_ip_ihl
+  rx_ip_dscp := udp_complete.io.m_ip_dscp
+  rx_ip_ecn := udp_complete.io.m_ip_ecn
+  rx_ip_length := udp_complete.io.m_ip_length
+  rx_ip_identification := udp_complete.io.m_ip_identification
+  rx_ip_flags := udp_complete.io.m_ip_flags
+  rx_ip_fragment_offset := udp_complete.io.m_ip_fragment_offset
+  rx_ip_ttl := udp_complete.io.m_ip_ttl
+  rx_ip_protocol := udp_complete.io.m_ip_protocol
+  rx_ip_header_checksum := udp_complete.io.m_ip_header_checksum
+  rx_ip_source_ip := udp_complete.io.m_ip_source_ip
+  rx_ip_dest_ip := udp_complete.io.m_ip_dest_ip
+  rx_ip_payload_axis_tdata := udp_complete.io.m_ip_payload_axis_tdata
+  rx_ip_payload_axis_tvalid := udp_complete.io.m_ip_payload_axis_tvalid
+  udp_complete.io.m_ip_payload_axis_tready := rx_ip_payload_axis_tready
+  rx_ip_payload_axis_tlast := udp_complete.io.m_ip_payload_axis_tlast
+  rx_ip_payload_axis_tuser := udp_complete.io.m_ip_payload_axis_tuser
+
+
+  // UDP frame input
+  udp_complete.io.s_udp_hdr_valid := eth_wrapper.io.tx_udp_hdr_valid
+  // eth_wrapper.io.tx_udp_hdr_ready := udp_complete.io.s_udp_hdr_ready
+  udp_complete.io.s_udp_ip_dscp := 0.U(6.W)
+  udp_complete.io.s_udp_ip_ecn := 0.U(2.W)
+  udp_complete.io.s_udp_ip_ttl := 64.U(8.W)
+  udp_complete.io.s_udp_ip_source_ip := local_ip
+  udp_complete.io.s_udp_ip_dest_ip := udp_complete.io.m_ip_source_ip
+  udp_complete.io.s_udp_source_port := udp_complete.io.m_udp_dest_port
+  udp_complete.io.s_udp_dest_port := udp_complete.io.m_udp_source_port
+  udp_complete.io.s_udp_length := udp_complete.io.m_udp_length
+  udp_complete.io.s_udp_checksum := 0.U(16.W)
+  
+  udp_complete.io.s_udp_payload_axis_tdata := tx_fifo_udp_payload_axis_tdata
+  udp_complete.io.s_udp_payload_axis_tvalid := tx_fifo_udp_payload_axis_tvalid
+  tx_fifo_udp_payload_axis_tready := udp_complete.io.s_udp_payload_axis_tready
+  udp_complete.io.s_udp_payload_axis_tlast := tx_fifo_udp_payload_axis_tlast
+  udp_complete.io.s_udp_payload_axis_tuser := tx_fifo_udp_payload_axis_tuser
+
+
+  // UDP frame output
+  udp_complete.io.m_udp_hdr_ready := eth_wrapper.io.rx_udp_hdr_ready
+  
+  rx_fifo_udp_payload_axis_tdata := udp_complete.io.m_udp_payload_axis_tdata
+  rx_fifo_udp_payload_axis_tvalid := udp_complete.io.m_udp_payload_axis_tvalid
+  udp_complete.io.m_udp_payload_axis_tready := rx_fifo_udp_payload_axis_tready
+  rx_fifo_udp_payload_axis_tlast := udp_complete.io.m_udp_payload_axis_tlast
+  rx_fifo_udp_payload_axis_tuser := udp_complete.io.m_udp_payload_axis_tuser
+
+
+  // Status signals
+
+
+  // Configuration
+  udp_complete.io.local_mac := local_mac
+  udp_complete.io.local_ip := local_ip
+  udp_complete.io.gateway_ip := gateway_ip
+  udp_complete.io.subnet_mask := subnet_mask
+  udp_complete.io.clear_arp_cache := 0.U(1.W)
+
+
+
+
+  eth_wrapper.io.tx_eth_hdr_ready := tx_eth_hdr_ready
+
+  eth_wrapper.io.rx_udp_payload_axis_tvalid := rx_fifo_udp_payload_axis_tvalid
+  eth_wrapper.io.rx_udp_payload_axis_tlast := rx_fifo_udp_payload_axis_tlast
+
+  
+  eth_wrapper.io.rx_udp_hdr_valid := rx_eth_hdr_valid
+
+  eth_wrapper.io.tx_fifo_udp_payload_axis_tdata := tx_fifo_udp_payload_axis_tdata
+  eth_wrapper.io.tx_fifo_udp_payload_axis_tvalid := tx_fifo_udp_payload_axis_tvalid
+  eth_wrapper.io.tx_fifo_udp_payload_axis_tlast := tx_fifo_udp_payload_axis_tlast
+  eth_wrapper.io.tx_fifo_udp_payload_axis_tuser := tx_fifo_udp_payload_axis_tuser
+
 
   eth_wrapper.io.clock := clock
   eth_wrapper.io.reset := reset
@@ -70,21 +282,22 @@ class Ethernet extends Module {
 
 
 
-  val eth_axis_tx = Module(new eth_axis_tx)
+
+
 
   eth_axis_tx.io.clk := clock
   eth_axis_tx.io.rst := reset
 
-  eth_axis_tx.io.s_eth_hdr_valid := eth_wrapper.io.tx_eth_hdr_valid
-  eth_wrapper.io.tx_eth_hdr_ready := eth_axis_tx.io.s_eth_hdr_ready
-  eth_axis_tx.io.s_eth_dest_mac := eth_wrapper.io.tx_eth_dest_mac
-  eth_axis_tx.io.s_eth_src_mac := eth_wrapper.io.tx_eth_src_mac
-  eth_axis_tx.io.s_eth_type := eth_wrapper.io.tx_eth_type
-  eth_axis_tx.io.s_eth_payload_axis_tdata := eth_wrapper.io.tx_eth_payload_axis_tdata
-  eth_axis_tx.io.s_eth_payload_axis_tvalid := eth_wrapper.io.tx_eth_payload_axis_tvalid
-  eth_wrapper.io.tx_eth_payload_axis_tready := eth_axis_tx.io.s_eth_payload_axis_tready
-  eth_axis_tx.io.s_eth_payload_axis_tlast := eth_wrapper.io.tx_eth_payload_axis_tlast
-  eth_axis_tx.io.s_eth_payload_axis_tuser := eth_wrapper.io.tx_eth_payload_axis_tuser
+  eth_axis_tx.io.s_eth_hdr_valid := tx_eth_hdr_valid
+  tx_eth_hdr_ready := eth_axis_tx.io.s_eth_hdr_ready
+  eth_axis_tx.io.s_eth_dest_mac := tx_eth_dest_mac
+  eth_axis_tx.io.s_eth_src_mac := tx_eth_src_mac
+  eth_axis_tx.io.s_eth_type := tx_eth_type
+  eth_axis_tx.io.s_eth_payload_axis_tdata := tx_eth_payload_axis_tdata
+  eth_axis_tx.io.s_eth_payload_axis_tvalid := tx_eth_payload_axis_tvalid
+  tx_eth_payload_axis_tready := eth_axis_tx.io.s_eth_payload_axis_tready
+  eth_axis_tx.io.s_eth_payload_axis_tlast := tx_eth_payload_axis_tlast
+  eth_axis_tx.io.s_eth_payload_axis_tuser := tx_eth_payload_axis_tuser
 
   tx_axis_tdata := eth_axis_tx.io.m_axis_tdata
   tx_axis_tvalid := eth_axis_tx.io.m_axis_tvalid
@@ -92,7 +305,9 @@ class Ethernet extends Module {
   tx_axis_tlast := eth_axis_tx.io.m_axis_tlast
   tx_axis_tuser := eth_axis_tx.io.m_axis_tuser
 
-  val eth_axis_rx = Module(new eth_axis_rx)
+
+
+
 
   eth_axis_rx.io.clk := clock
   eth_axis_rx.io.rst := reset
@@ -103,16 +318,16 @@ class Ethernet extends Module {
   eth_axis_rx.io.s_axis_tlast := rx_axis_tlast
   eth_axis_rx.io.s_axis_tuser := rx_axis_tuser
 
-  eth_wrapper.io.rx_eth_hdr_valid := eth_axis_rx.io.m_eth_hdr_valid
-  eth_axis_rx.io.m_eth_hdr_ready := eth_wrapper.io.rx_eth_hdr_ready
-  eth_wrapper.io.rx_eth_dest_mac := eth_axis_rx.io.m_eth_dest_mac
-  eth_wrapper.io.rx_eth_src_mac := eth_axis_rx.io.m_eth_src_mac
-  eth_wrapper.io.rx_eth_type := eth_axis_rx.io.m_eth_type
-  eth_wrapper.io.rx_eth_payload_axis_tdata := eth_axis_rx.io.m_eth_payload_axis_tdata
-  eth_wrapper.io.rx_eth_payload_axis_tvalid := eth_axis_rx.io.m_eth_payload_axis_tvalid
-  eth_axis_rx.io.m_eth_payload_axis_tready := eth_wrapper.io.rx_eth_payload_axis_tready
-  eth_wrapper.io.rx_eth_payload_axis_tlast := eth_axis_rx.io.m_eth_payload_axis_tlast
-  eth_wrapper.io.rx_eth_payload_axis_tuser := eth_axis_rx.io.m_eth_payload_axis_tuser
+  rx_eth_hdr_valid := eth_axis_rx.io.m_eth_hdr_valid
+  eth_axis_rx.io.m_eth_hdr_ready := rx_eth_hdr_ready
+  rx_eth_dest_mac := eth_axis_rx.io.m_eth_dest_mac
+  rx_eth_src_mac := eth_axis_rx.io.m_eth_src_mac
+  rx_eth_type := eth_axis_rx.io.m_eth_type
+  rx_eth_payload_axis_tdata := eth_axis_rx.io.m_eth_payload_axis_tdata
+  rx_eth_payload_axis_tvalid := eth_axis_rx.io.m_eth_payload_axis_tvalid
+  eth_axis_rx.io.m_eth_payload_axis_tready := rx_eth_payload_axis_tready
+  rx_eth_payload_axis_tlast := eth_axis_rx.io.m_eth_payload_axis_tlast
+  rx_eth_payload_axis_tuser := eth_axis_rx.io.m_eth_payload_axis_tuser
 
   val udp_payload_fifo = Module(new axis_fifo(
     DEPTH = 8192,
@@ -129,19 +344,19 @@ class Ethernet extends Module {
   udp_payload_fifo.io.clk := clock
   udp_payload_fifo.io.rst := reset
 
-  udp_payload_fifo.io.s_axis_tdata := eth_wrapper.io.rx_fifo_udp_payload_axis_tdata
-  udp_payload_fifo.io.s_axis_tvalid := eth_wrapper.io.rx_fifo_udp_payload_axis_tvalid
-  eth_wrapper.io.rx_fifo_udp_payload_axis_tready := udp_payload_fifo.io.s_axis_tready
-  udp_payload_fifo.io.s_axis_tlast := eth_wrapper.io.rx_fifo_udp_payload_axis_tlast
+  udp_payload_fifo.io.s_axis_tdata := rx_fifo_udp_payload_axis_tdata
+  udp_payload_fifo.io.s_axis_tvalid := rx_fifo_udp_payload_axis_tvalid
+  rx_fifo_udp_payload_axis_tready := udp_payload_fifo.io.s_axis_tready
+  udp_payload_fifo.io.s_axis_tlast := rx_fifo_udp_payload_axis_tlast
   udp_payload_fifo.io.s_axis_tid := 0.U(8.W)
   udp_payload_fifo.io.s_axis_tdest := 0.U(8.W)
-  udp_payload_fifo.io.s_axis_tuser := eth_wrapper.io.rx_fifo_udp_payload_axis_tuser
+  udp_payload_fifo.io.s_axis_tuser := rx_fifo_udp_payload_axis_tuser
 
-  eth_wrapper.io.tx_fifo_udp_payload_axis_tdata := udp_payload_fifo.io.m_axis_tdata
-  eth_wrapper.io.tx_fifo_udp_payload_axis_tvalid := udp_payload_fifo.io.m_axis_tvalid
-  udp_payload_fifo.io.m_axis_tready := eth_wrapper.io.tx_fifo_udp_payload_axis_tready
-  eth_wrapper.io.tx_fifo_udp_payload_axis_tlast := udp_payload_fifo.io.m_axis_tlast
-  eth_wrapper.io.tx_fifo_udp_payload_axis_tuser := udp_payload_fifo.io.m_axis_tuser
+  tx_fifo_udp_payload_axis_tdata := udp_payload_fifo.io.m_axis_tdata
+  tx_fifo_udp_payload_axis_tvalid := udp_payload_fifo.io.m_axis_tvalid
+  udp_payload_fifo.io.m_axis_tready := tx_fifo_udp_payload_axis_tready
+  tx_fifo_udp_payload_axis_tlast := udp_payload_fifo.io.m_axis_tlast
+  tx_fifo_udp_payload_axis_tuser := udp_payload_fifo.io.m_axis_tuser
 
 
   val eth_mac_mii_fifo = Module(new eth_mac_mii_fifo(
@@ -187,6 +402,6 @@ class Ethernet extends Module {
 
 
 
-  io.phy_reset_n := eth_wrapper.io.phy_reset_n
+  io.phy_reset_n := !(reset.asBool)
 
 }
