@@ -115,18 +115,10 @@ module Arty100Top(
   Ethernet eth (
     .clock          (_clk_bufg_inst_O),
     .reset          (_sync_reset_inst_out),
-    .io_led0_r      (led0_r),
     .io_led0_g      (led0_g),
-    .io_led0_b      (led0_b),
-    .io_led1_r      (led1_r),
     .io_led1_g      (led1_g),
-    .io_led1_b      (led1_b),
-    .io_led2_r      (led2_r),
     .io_led2_g      (led2_g),
-    .io_led2_b      (led2_b),
-    .io_led3_r      (led3_r),
     .io_led3_g      (led3_g),
-    .io_led3_b      (led3_b),
     .io_led4        (_eth_io_led4),
     .io_led5        (_eth_io_led5),
     .io_led6        (_eth_io_led6),
@@ -141,6 +133,14 @@ module Arty100Top(
     .io_phy_txd     (eth_txd)
   );
   assign led = {_eth_io_led7, _eth_io_led6, _eth_io_led5, _eth_io_led4};
+  assign led0_b = 1'h0;
+  assign led0_r = 1'h0;
+  assign led1_b = 1'h0;
+  assign led1_r = 1'h0;
+  assign led2_b = 1'h0;
+  assign led2_r = 1'h0;
+  assign led3_b = 1'h0;
+  assign led3_r = 1'h0;
   assign uart_rxd_out = uart_txd_in;
 endmodule
 

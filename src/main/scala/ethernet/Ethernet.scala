@@ -236,8 +236,22 @@ class Ethernet extends Module {
   rx_ip_payload_axis_tuser := udp_complete.io.m_ip_payload_axis_tuser
 
 
+  val tx_udp_hdr_valid = Wire(Bool())
+  val rx_udp_hdr_valid = Wire(Bool())
+  val rx_udp_hdr_ready = Wire(Bool())
+  val rx_udp_dest_port = Wire(UInt(16.W))
+  val match_cond = Wire(Bool())
+
+
+  match_cond := rx_udp_dest_port === 1234.U
+
+  rx_udp_hdr_valid :=rx_eth_hdr_valid
+
+  tx_udp_hdr_valid := rx_udp_hdr_valid && match_cond
+  rx_udp_hdr_ready := (tx_eth_hdr_ready && match_cond) || !match_cond;
+
   // UDP frame input
-  udp_complete.io.s_udp_hdr_valid := eth_wrapper.io.tx_udp_hdr_valid
+  udp_complete.io.s_udp_hdr_valid := tx_udp_hdr_valid
   // eth_wrapper.io.tx_udp_hdr_ready := udp_complete.io.s_udp_hdr_ready
   udp_complete.io.s_udp_ip_dscp := 0.U(6.W)
   udp_complete.io.s_udp_ip_ecn := 0.U(2.W)
@@ -245,7 +259,7 @@ class Ethernet extends Module {
   udp_complete.io.s_udp_ip_source_ip := local_ip
   udp_complete.io.s_udp_ip_dest_ip := udp_complete.io.m_ip_source_ip
   udp_complete.io.s_udp_source_port := udp_complete.io.m_udp_dest_port
-  eth_wrapper.io.rx_udp_dest_port := udp_complete.io.m_udp_dest_port
+  rx_udp_dest_port := udp_complete.io.m_udp_dest_port
   udp_complete.io.s_udp_dest_port := udp_complete.io.m_udp_source_port
   udp_complete.io.s_udp_length := udp_complete.io.m_udp_length
   udp_complete.io.s_udp_checksum := 0.U(16.W)
@@ -257,8 +271,11 @@ class Ethernet extends Module {
   udp_complete.io.s_udp_payload_axis_tuser := tx_fifo_udp_payload_axis_tuser
 
 
+  eth_wrapper.io.rx_udp_dest_port := udp_complete.io.m_udp_dest_port
+
+  
   // UDP frame output
-  udp_complete.io.m_udp_hdr_ready := eth_wrapper.io.rx_udp_hdr_ready
+  udp_complete.io.m_udp_hdr_ready := rx_udp_hdr_ready
   
   rx_fifo_udp_payload_axis_tdata := udp_complete.io.m_udp_payload_axis_tdata
   rx_fifo_udp_payload_axis_tvalid := udp_complete.io.m_udp_payload_axis_tvalid
@@ -286,7 +303,7 @@ class Ethernet extends Module {
   eth_wrapper.io.rx_udp_payload_axis_tlast := rx_fifo_udp_payload_axis_tlast
 
   
-  eth_wrapper.io.rx_udp_hdr_valid := rx_eth_hdr_valid
+  rx_udp_hdr_valid := rx_eth_hdr_valid
 
   eth_wrapper.io.tx_fifo_udp_payload_axis_tdata := tx_fifo_udp_payload_axis_tdata
   eth_wrapper.io.tx_fifo_udp_payload_axis_tvalid := tx_fifo_udp_payload_axis_tvalid
@@ -296,24 +313,6 @@ class Ethernet extends Module {
 
   eth_wrapper.io.clock := clock
   eth_wrapper.io.reset := reset
-
-  io.led0_r := eth_wrapper.io.led0_r
-  io.led0_g := eth_wrapper.io.led0_g
-  io.led0_b := eth_wrapper.io.led0_b
-  io.led1_r := eth_wrapper.io.led1_r
-  io.led1_g := eth_wrapper.io.led1_g
-  io.led1_b := eth_wrapper.io.led1_b
-  io.led2_r := eth_wrapper.io.led2_r
-  io.led2_g := eth_wrapper.io.led2_g
-  io.led2_b := eth_wrapper.io.led2_b
-  io.led3_r := eth_wrapper.io.led3_r
-  io.led3_g := eth_wrapper.io.led3_g
-  io.led3_b := eth_wrapper.io.led3_b
-  io.led4 := eth_wrapper.io.led4
-  io.led5 := eth_wrapper.io.led5
-  io.led6 := eth_wrapper.io.led6
-  io.led7 := eth_wrapper.io.led7
-
 
 
 
@@ -434,8 +433,41 @@ class Ethernet extends Module {
   eth_mac_mii_fifo.io.cfg_tx_enable := 1.U(1.W)
   eth_mac_mii_fifo.io.cfg_rx_enable := 1.U(1.W)
 
-
-
   io.phy_reset_n := !(reset.asBool)
+
+
+  val valid_last = RegInit(false.B)
+  val led_reg = RegInit(0.U(8.W))
+
+  when (tx_fifo_udp_payload_axis_tvalid) {
+    when (!valid_last) {
+      led_reg := tx_fifo_udp_payload_axis_tdata
+      valid_last := true.B
+    }
+    when (tx_fifo_udp_payload_axis_tlast) {
+      valid_last := false.B
+    }
+  }
+
+  io.led0_g := led_reg(0)
+  io.led1_g := led_reg(1)
+  io.led2_g := led_reg(2)
+  io.led3_g := led_reg(3)
+  io.led4 := led_reg(4)
+  io.led5 := led_reg(5)
+  io.led6 := led_reg(6)
+  io.led7 := led_reg(7)
+
+  io.led0_r := 0.U(1.W)
+  io.led1_r := 0.U(1.W)
+  io.led2_r := 0.U(1.W)
+  io.led3_r := 0.U(1.W)
+  io.led0_b := 0.U(1.W)
+  io.led1_b := 0.U(1.W)
+  io.led2_b := 0.U(1.W)
+  io.led3_b := 0.U(1.W)
+
+
+
 
 }

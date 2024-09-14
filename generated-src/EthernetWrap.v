@@ -8,28 +8,6 @@ module EthernetWrap (
     input  wire       clock,
     input  wire       reset,
 
-    output wire       led0_r,
-    output wire       led0_g,
-    output wire       led0_b,
-    output wire       led1_r,
-    output wire       led1_g,
-    output wire       led1_b,
-    output wire       led2_r,
-    output wire       led2_g,
-    output wire       led2_b,
-    output wire       led3_r,
-    output wire       led3_g,
-    output wire       led3_b,
-    output wire       led4,
-    output wire       led5,
-    output wire       led6,
-    output wire       led7,
-
-    /*
-     * Ethernet: 100BASE-T MII
-     */
-    output wire       phy_reset_n,
-
 
 
 input tx_eth_hdr_ready,
@@ -48,7 +26,6 @@ input tx_fifo_udp_payload_axis_tlast,
 input tx_fifo_udp_payload_axis_tuser,
 
 
-input rx_udp_hdr_valid,
 
 input rx_udp_payload_axis_tvalid,
 input rx_udp_payload_axis_tlast
@@ -93,31 +70,9 @@ always @(posedge clock) begin
     end
 end
 
-assign tx_udp_hdr_valid = rx_udp_hdr_valid && match_cond;
+//assign tx_udp_hdr_valid = rx_udp_hdr_valid && match_cond;
 assign rx_udp_hdr_ready = (tx_eth_hdr_ready && match_cond) || no_match;
 
-
-// Place first payload byte onto LEDs
-reg valid_last = 0;
-reg [7:0] led_reg = 0;
-
-always @(posedge clock) begin
-    if (reset) begin
-        led_reg <= 0;
-    end else begin
-        if (tx_fifo_udp_payload_axis_tvalid) begin
-            if (!valid_last) begin
-                led_reg <= tx_fifo_udp_payload_axis_tdata;
-                valid_last <= 1'b1;
-            end
-            if (tx_fifo_udp_payload_axis_tlast) begin
-                valid_last <= 1'b0;
-            end
-        end
-    end
-end
-
-assign {led0_g, led1_g, led2_g, led3_g, led4, led5, led6, led7} = led_reg;
 
 
 endmodule

@@ -7,26 +7,6 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
     val clock = Input(Clock())
     val reset = Input(Reset())
 
-    val led0_r = Output(Bool())
-    val led0_g = Output(Bool())
-    val led0_b = Output(Bool())
-    val led1_r = Output(Bool())
-    val led1_g = Output(Bool())
-    val led1_b = Output(Bool())
-    val led2_r = Output(Bool())
-    val led2_g = Output(Bool())
-    val led2_b = Output(Bool())
-    val led3_r = Output(Bool())
-    val led3_g = Output(Bool())
-    val led3_b = Output(Bool())
-    val led4 = Output(Bool())
-    val led5 = Output(Bool())
-    val led6 = Output(Bool())
-    val led7 = Output(Bool())
-
-
-    val phy_reset_n = Output(Bool())
-
     val tx_eth_hdr_ready = Input(Bool())
 
     val rx_udp_hdr_ready = Output(Bool())
@@ -44,7 +24,6 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
     val tx_fifo_udp_payload_axis_tuser = Input(Bool())
 
 
-    val rx_udp_hdr_valid = Input(Bool())
 
     val rx_udp_payload_axis_tvalid = Input(Bool())
     val rx_udp_payload_axis_tlast = Input(Bool())
@@ -61,28 +40,6 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
       |     */
       |    input  wire       clock,
       |    input  wire       reset,
-      |
-      |    output wire       led0_r,
-      |    output wire       led0_g,
-      |    output wire       led0_b,
-      |    output wire       led1_r,
-      |    output wire       led1_g,
-      |    output wire       led1_b,
-      |    output wire       led2_r,
-      |    output wire       led2_g,
-      |    output wire       led2_b,
-      |    output wire       led3_r,
-      |    output wire       led3_g,
-      |    output wire       led3_b,
-      |    output wire       led4,
-      |    output wire       led5,
-      |    output wire       led6,
-      |    output wire       led7,
-      |
-      |    /*
-      |     * Ethernet: 100BASE-T MII
-      |     */
-      |    output wire       phy_reset_n,
       |
       |
       |
@@ -102,7 +59,6 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
       |input tx_fifo_udp_payload_axis_tuser,
       |
       |
-      |input rx_udp_hdr_valid,
       |
       |input rx_udp_payload_axis_tvalid,
       |input rx_udp_payload_axis_tlast
@@ -147,31 +103,9 @@ class EthernetWrap extends BlackBox with HasBlackBoxInline {
 |    end
 |end
 |
-|assign tx_udp_hdr_valid = rx_udp_hdr_valid && match_cond;
+|//assign tx_udp_hdr_valid = rx_udp_hdr_valid && match_cond;
 |assign rx_udp_hdr_ready = (tx_eth_hdr_ready && match_cond) || no_match;
 |
-|
-|// Place first payload byte onto LEDs
-|reg valid_last = 0;
-|reg [7:0] led_reg = 0;
-|
-|always @(posedge clock) begin
-|    if (reset) begin
-|        led_reg <= 0;
-|    end else begin
-|        if (tx_fifo_udp_payload_axis_tvalid) begin
-|            if (!valid_last) begin
-|                led_reg <= tx_fifo_udp_payload_axis_tdata;
-|                valid_last <= 1'b1;
-|            end
-|            if (tx_fifo_udp_payload_axis_tlast) begin
-|                valid_last <= 1'b0;
-|            end
-|        end
-|    end
-|end
-|
-|assign {led0_g, led1_g, led2_g, led3_g, led4, led5, led6, led7} = led_reg;
 |
       |
       |endmodule

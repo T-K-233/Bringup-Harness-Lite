@@ -2,18 +2,10 @@
 module Ethernet(
   input        clock,
                reset,
-  output       io_led0_r,
-               io_led0_g,
-               io_led0_b,
-               io_led1_r,
+  output       io_led0_g,
                io_led1_g,
-               io_led1_b,
-               io_led2_r,
                io_led2_g,
-               io_led2_b,
-               io_led3_r,
                io_led3_g,
-               io_led3_b,
                io_led4,
                io_led5,
                io_led6,
@@ -73,37 +65,32 @@ module Ethernet(
   wire        _udp_complete_m_udp_payload_axis_tvalid;
   wire        _udp_complete_m_udp_payload_axis_tlast;
   wire        _udp_complete_m_udp_payload_axis_tuser;
-  wire        _eth_wrapper_rx_udp_hdr_ready;
-  wire        _eth_wrapper_tx_udp_hdr_valid;
+  wire        match_cond = _udp_complete_m_udp_dest_port == 16'h4D2;
+  reg         valid_last;
+  reg  [7:0]  led_reg;
+  always @(posedge clock) begin
+    if (reset) begin
+      valid_last <= 1'h0;
+      led_reg <= 8'h0;
+    end
+    else begin
+      if (_udp_payload_fifo_m_axis_tvalid)
+        valid_last <= ~_udp_payload_fifo_m_axis_tlast;
+      if (_udp_payload_fifo_m_axis_tvalid & ~valid_last)
+        led_reg <= _udp_payload_fifo_m_axis_tdata;
+    end
+  end // always @(posedge)
   EthernetWrap eth_wrapper (
     .clock                           (clock),
     .reset                           (reset),
-    .led0_r                          (io_led0_r),
-    .led0_g                          (io_led0_g),
-    .led0_b                          (io_led0_b),
-    .led1_r                          (io_led1_r),
-    .led1_g                          (io_led1_g),
-    .led1_b                          (io_led1_b),
-    .led2_r                          (io_led2_r),
-    .led2_g                          (io_led2_g),
-    .led2_b                          (io_led2_b),
-    .led3_r                          (io_led3_r),
-    .led3_g                          (io_led3_g),
-    .led3_b                          (io_led3_b),
-    .led4                            (io_led4),
-    .led5                            (io_led5),
-    .led6                            (io_led6),
-    .led7                            (io_led7),
-    .phy_reset_n                     (/* unused */),
     .tx_eth_hdr_ready                (_eth_axis_tx_s_eth_hdr_ready),
-    .rx_udp_hdr_ready                (_eth_wrapper_rx_udp_hdr_ready),
+    .rx_udp_hdr_ready                (/* unused */),
     .rx_udp_dest_port                (_udp_complete_m_udp_dest_port),
-    .tx_udp_hdr_valid                (_eth_wrapper_tx_udp_hdr_valid),
+    .tx_udp_hdr_valid                (/* unused */),
     .tx_fifo_udp_payload_axis_tdata  (_udp_payload_fifo_m_axis_tdata),
     .tx_fifo_udp_payload_axis_tvalid (_udp_payload_fifo_m_axis_tvalid),
     .tx_fifo_udp_payload_axis_tlast  (_udp_payload_fifo_m_axis_tlast),
     .tx_fifo_udp_payload_axis_tuser  (_udp_payload_fifo_m_axis_tuser),
-    .rx_udp_hdr_valid                (_eth_axis_rx_m_eth_hdr_valid),
     .rx_udp_payload_axis_tvalid      (_udp_complete_m_udp_payload_axis_tvalid),
     .rx_udp_payload_axis_tlast       (_udp_complete_m_udp_payload_axis_tlast)
   );
@@ -175,7 +162,7 @@ module Ethernet(
     .m_ip_payload_axis_tready               (1'h1),
     .m_ip_payload_axis_tlast                (/* unused */),
     .m_ip_payload_axis_tuser                (/* unused */),
-    .s_udp_hdr_valid                        (_eth_wrapper_tx_udp_hdr_valid),
+    .s_udp_hdr_valid                        (_eth_axis_rx_m_eth_hdr_valid & match_cond),
     .s_udp_hdr_ready                        (/* unused */),
     .s_udp_ip_dscp                          (6'h0),
     .s_udp_ip_ecn                           (2'h0),
@@ -192,7 +179,8 @@ module Ethernet(
     .s_udp_payload_axis_tlast               (_udp_payload_fifo_m_axis_tlast),
     .s_udp_payload_axis_tuser               (_udp_payload_fifo_m_axis_tuser),
     .m_udp_hdr_valid                        (/* unused */),
-    .m_udp_hdr_ready                        (_eth_wrapper_rx_udp_hdr_ready),
+    .m_udp_hdr_ready
+      (_eth_axis_tx_s_eth_hdr_ready & match_cond | ~match_cond),
     .m_udp_eth_dest_mac                     (/* unused */),
     .m_udp_eth_src_mac                      (/* unused */),
     .m_udp_eth_type                         (/* unused */),
@@ -356,6 +344,14 @@ module Ethernet(
     .cfg_tx_enable      (1'h1),
     .cfg_rx_enable      (1'h1)
   );
+  assign io_led0_g = led_reg[0];
+  assign io_led1_g = led_reg[1];
+  assign io_led2_g = led_reg[2];
+  assign io_led3_g = led_reg[3];
+  assign io_led4 = led_reg[4];
+  assign io_led5 = led_reg[5];
+  assign io_led6 = led_reg[6];
+  assign io_led7 = led_reg[7];
   assign io_phy_reset_n = ~reset;
   assign io_phy_txd = _eth_mac_mii_fifo_mii_txd[3:0];
 endmodule
