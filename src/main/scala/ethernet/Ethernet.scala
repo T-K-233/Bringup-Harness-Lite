@@ -119,7 +119,6 @@ class Ethernet extends Module {
 
 
 
-  val eth_wrapper = Module(new EthernetWrap)
 
   val udp_complete = Module(new udp_complete)
   val eth_axis_tx = Module(new eth_axis_tx)
@@ -252,7 +251,6 @@ class Ethernet extends Module {
 
   // UDP frame input
   udp_complete.io.s_udp_hdr_valid := tx_udp_hdr_valid
-  // eth_wrapper.io.tx_udp_hdr_ready := udp_complete.io.s_udp_hdr_ready
   udp_complete.io.s_udp_ip_dscp := 0.U(6.W)
   udp_complete.io.s_udp_ip_ecn := 0.U(2.W)
   udp_complete.io.s_udp_ip_ttl := 64.U(8.W)
@@ -270,8 +268,6 @@ class Ethernet extends Module {
   udp_complete.io.s_udp_payload_axis_tlast := tx_fifo_udp_payload_axis_tlast
   udp_complete.io.s_udp_payload_axis_tuser := tx_fifo_udp_payload_axis_tuser
 
-
-  eth_wrapper.io.rx_udp_dest_port := udp_complete.io.m_udp_dest_port
 
   
   // UDP frame output
@@ -295,25 +291,8 @@ class Ethernet extends Module {
   udp_complete.io.clear_arp_cache := 0.U(1.W)
 
 
-
-
-  eth_wrapper.io.tx_eth_hdr_ready := tx_eth_hdr_ready
-
-  eth_wrapper.io.rx_udp_payload_axis_tvalid := rx_fifo_udp_payload_axis_tvalid
-  eth_wrapper.io.rx_udp_payload_axis_tlast := rx_fifo_udp_payload_axis_tlast
-
   
   rx_udp_hdr_valid := rx_eth_hdr_valid
-
-  eth_wrapper.io.tx_fifo_udp_payload_axis_tdata := tx_fifo_udp_payload_axis_tdata
-  eth_wrapper.io.tx_fifo_udp_payload_axis_tvalid := tx_fifo_udp_payload_axis_tvalid
-  eth_wrapper.io.tx_fifo_udp_payload_axis_tlast := tx_fifo_udp_payload_axis_tlast
-  eth_wrapper.io.tx_fifo_udp_payload_axis_tuser := tx_fifo_udp_payload_axis_tuser
-
-
-  eth_wrapper.io.clock := clock
-  eth_wrapper.io.reset := reset
-
 
 
 

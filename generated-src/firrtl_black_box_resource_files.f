@@ -1,2 +1,1 @@
-EthernetWrap.v
 SyncReset.v

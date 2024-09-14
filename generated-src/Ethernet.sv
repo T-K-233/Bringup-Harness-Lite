@@ -80,20 +80,6 @@ module Ethernet(
         led_reg <= _udp_payload_fifo_m_axis_tdata;
     end
   end // always @(posedge)
-  EthernetWrap eth_wrapper (
-    .clock                           (clock),
-    .reset                           (reset),
-    .tx_eth_hdr_ready                (_eth_axis_tx_s_eth_hdr_ready),
-    .rx_udp_hdr_ready                (/* unused */),
-    .rx_udp_dest_port                (_udp_complete_m_udp_dest_port),
-    .tx_udp_hdr_valid                (/* unused */),
-    .tx_fifo_udp_payload_axis_tdata  (_udp_payload_fifo_m_axis_tdata),
-    .tx_fifo_udp_payload_axis_tvalid (_udp_payload_fifo_m_axis_tvalid),
-    .tx_fifo_udp_payload_axis_tlast  (_udp_payload_fifo_m_axis_tlast),
-    .tx_fifo_udp_payload_axis_tuser  (_udp_payload_fifo_m_axis_tuser),
-    .rx_udp_payload_axis_tvalid      (_udp_complete_m_udp_payload_axis_tvalid),
-    .rx_udp_payload_axis_tlast       (_udp_complete_m_udp_payload_axis_tlast)
-  );
   udp_complete #(
     .ARP_CACHE_ADDR_WIDTH(9),
     .ARP_REQUEST_RETRY_COUNT(4),
